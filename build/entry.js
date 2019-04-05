@@ -1,243 +1,316 @@
-var demo = new CANNON.Demo();
-demo.addScene("NoCone", function () {
-  var world = demo.getWorld();
-  world.gravity.set(0, 0, -5);
-  var scale = 3;
-  var position = new CANNON.Vec3(0, 0, 10);
-  createRagdoll(scale, position, world, Math.PI, Math.PI, Math.PI);
-  createGround(world);
-});
-demo.addScene("NormalCone", function () {
-  var world = demo.getWorld();
-  world.gravity.set(0, 0, -5);
-  var scale = 3;
-  var position = new CANNON.Vec3(0, 0, 10);
-  createRagdoll(scale, position, world, Math.PI / 4, Math.PI / 3, Math.PI / 8);
-  createGround(world);
-});
-demo.addScene("ThinCone", function () {
-  var world = demo.getWorld();
-  world.gravity.set(0, 0, -5);
-  var scale = 3;
-  var position = new CANNON.Vec3(0, 0, 10);
-  createRagdoll(scale, position, world, 0, 0, 0);
-  createGround(world);
-});
-demo.start();
-function createRagdoll(scale, position, world, angleA, angleB, twistAngle) {
-  var numBodiesAtStart = world.bodies.length;
-  var shouldersDistance = 0.5 * scale,
-    upperArmLength = 0.4 * scale,
-    lowerArmLength = 0.4 * scale,
-    upperArmSize = 0.2 * scale,
-    lowerArmSize = 0.2 * scale,
-    neckLength = 0.1 * scale,
-    headRadius = 0.25 * scale,
-    upperBodyLength = 0.6 * scale,
-    pelvisLength = 0.4 * scale,
-    upperLegLength = 0.5 * scale,
-    upperLegSize = 0.2 * scale,
-    lowerLegSize = 0.2 * scale,
-    lowerLegLength = 0.5 * scale;
-  var headShape = new CANNON.Sphere(headRadius),
-    upperArmShape = new CANNON.Box(new CANNON.Vec3(upperArmLength * 0.5, upperArmSize * 0.5, upperArmSize * 0.5)),
-    lowerArmShape = new CANNON.Box(new CANNON.Vec3(lowerArmLength * 0.5, lowerArmSize * 0.5, lowerArmSize * 0.5)),
-    upperBodyShape = new CANNON.Box(new CANNON.Vec3(shouldersDistance * 0.5, upperBodyLength * 0.5, lowerArmSize * 0.5)),
-    pelvisShape = new CANNON.Box(new CANNON.Vec3(shouldersDistance * 0.5, pelvisLength * 0.5, lowerArmSize * 0.5)),
-    upperLegShape = new CANNON.Box(new CANNON.Vec3(upperLegSize * 0.5, upperLegLength * 0.5, lowerArmSize * 0.5)),
-    lowerLegShape = new CANNON.Box(new CANNON.Vec3(lowerLegSize * 0.5, lowerLegLength * 0.5, lowerArmSize * 0.5));
-  // Lower legs
-  var lowerLeftLeg = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(-shouldersDistance / 2, lowerLegLength / 2, 0)
-  });
-  var lowerRightLeg = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(shouldersDistance / 2, lowerLegLength / 2, 0)
-  });
-  lowerLeftLeg.addShape(lowerLegShape);
-  lowerRightLeg.addShape(lowerLegShape);
-  world.addBody(lowerLeftLeg);
-  world.addBody(lowerRightLeg);
-  demo.addVisual(lowerRightLeg);
-  demo.addVisual(lowerLeftLeg);
-  // Upper legs
-  var upperLeftLeg = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(-shouldersDistance / 2, lowerLeftLeg.position.y + lowerLegLength / 2 + upperLegLength / 2, 0),
-  });
-  var upperRightLeg = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(shouldersDistance / 2, lowerRightLeg.position.y + lowerLegLength / 2 + upperLegLength / 2, 0),
-  });
-  upperLeftLeg.addShape(upperLegShape);
-  upperRightLeg.addShape(upperLegShape);
-  world.addBody(upperLeftLeg);
-  world.addBody(upperRightLeg);
-  demo.addVisual(upperLeftLeg);
-  demo.addVisual(upperRightLeg);
-  // Pelvis
-  var pelvis = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(0, upperLeftLeg.position.y + upperLegLength / 2 + pelvisLength / 2, 0),
-  });
-  pelvis.addShape(pelvisShape);
-  world.addBody(pelvis);
-  demo.addVisual(pelvis);
-  // Upper body
-  var upperBody = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(0, pelvis.position.y + pelvisLength / 2 + upperBodyLength / 2, 0),
-  });
-  upperBody.addShape(upperBodyShape);
-  world.addBody(upperBody);
-  demo.addVisual(upperBody);
-  // Head
-  var head = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(0, upperBody.position.y + upperBodyLength / 2 + headRadius + neckLength, 0),
-  });
-  head.addShape(headShape);
-  world.addBody(head);
-  demo.addVisual(head);
-  // Upper arms
-  var upperLeftArm = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(-shouldersDistance / 2 - upperArmLength / 2, upperBody.position.y + upperBodyLength / 2, 0),
-  });
-  var upperRightArm = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(shouldersDistance / 2 + upperArmLength / 2, upperBody.position.y + upperBodyLength / 2, 0),
-  });
-  upperLeftArm.addShape(upperArmShape);
-  upperRightArm.addShape(upperArmShape);
-  world.addBody(upperLeftArm);
-  world.addBody(upperRightArm);
-  demo.addVisual(upperLeftArm);
-  demo.addVisual(upperRightArm);
-  // lower arms
-  var lowerLeftArm = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(upperLeftArm.position.x - lowerArmLength / 2 - upperArmLength / 2, upperLeftArm.position.y, 0)
-  });
-  var lowerRightArm = new CANNON.Body({
-    mass: 1,
-    position: new CANNON.Vec3(upperRightArm.position.x + lowerArmLength / 2 + upperArmLength / 2, upperRightArm.position.y, 0)
-  });
-  lowerLeftArm.addShape(lowerArmShape);
-  lowerRightArm.addShape(lowerArmShape);
-  world.addBody(lowerLeftArm);
-  world.addBody(lowerRightArm);
-  demo.addVisual(lowerLeftArm);
-  demo.addVisual(lowerRightArm);
-  // Neck joint
-  var neckJoint = new CANNON.ConeTwistConstraint(head, upperBody, {
-    pivotA: new CANNON.Vec3(0, -headRadius - neckLength / 2, 0),
-    pivotB: new CANNON.Vec3(0, upperBodyLength / 2, 0),
-    axisA: CANNON.Vec3.UNIT_Y,
-    axisB: CANNON.Vec3.UNIT_Y,
-    angle: angleA,
-    twistAngle: twistAngle
-  });
-  world.addConstraint(neckJoint);
-  // Knee joints
-  var leftKneeJoint = new CANNON.ConeTwistConstraint(lowerLeftLeg, upperLeftLeg, {
-    pivotA: new CANNON.Vec3(0, lowerLegLength / 2, 0),
-    pivotB: new CANNON.Vec3(0, -upperLegLength / 2, 0),
-    axisA: CANNON.Vec3.UNIT_Y,
-    axisB: CANNON.Vec3.UNIT_Y,
-    angle: angleA,
-    twistAngle: twistAngle
-  });
-  var rightKneeJoint = new CANNON.ConeTwistConstraint(lowerRightLeg, upperRightLeg, {
-    pivotA: new CANNON.Vec3(0, lowerLegLength / 2, 0),
-    pivotB: new CANNON.Vec3(0, -upperLegLength / 2, 0),
-    axisA: CANNON.Vec3.UNIT_Y,
-    axisB: CANNON.Vec3.UNIT_Y,
-    angle: angleA,
-    twistAngle: twistAngle
-  });
-  world.addConstraint(leftKneeJoint);
-  world.addConstraint(rightKneeJoint);
-  // Hip joints
-  var leftHipJoint = new CANNON.ConeTwistConstraint(upperLeftLeg, pelvis, {
-    pivotA: new CANNON.Vec3(0, upperLegLength / 2, 0),
-    pivotB: new CANNON.Vec3(-shouldersDistance / 2, -pelvisLength / 2, 0),
-    axisA: CANNON.Vec3.UNIT_Y,
-    axisB: CANNON.Vec3.UNIT_Y,
-    angle: angleA,
-    twistAngle: twistAngle
-  });
-  var rightHipJoint = new CANNON.ConeTwistConstraint(upperRightLeg, pelvis, {
-    pivotA: new CANNON.Vec3(0, upperLegLength / 2, 0),
-    pivotB: new CANNON.Vec3(shouldersDistance / 2, -pelvisLength / 2, 0),
-    axisA: CANNON.Vec3.UNIT_Y,
-    axisB: CANNON.Vec3.UNIT_Y,
-    angle: angleA,
-    twistAngle: twistAngle
-  });
-  world.addConstraint(leftHipJoint);
-  world.addConstraint(rightHipJoint);
-  // Spine
-  var spineJoint = new CANNON.ConeTwistConstraint(pelvis, upperBody, {
-    pivotA: new CANNON.Vec3(0, pelvisLength / 2, 0),
-    pivotB: new CANNON.Vec3(0, -upperBodyLength / 2, 0),
-    axisA: CANNON.Vec3.UNIT_Y,
-    axisB: CANNON.Vec3.UNIT_Y,
-    angle: angleA,
-    twistAngle: twistAngle
-  });
-  world.addConstraint(spineJoint);
-  // Shoulders
-  var leftShoulder = new CANNON.ConeTwistConstraint(upperBody, upperLeftArm, {
-    pivotA: new CANNON.Vec3(-shouldersDistance / 2, upperBodyLength / 2, 0),
-    pivotB: new CANNON.Vec3(upperArmLength / 2, 0, 0),
-    axisA: CANNON.Vec3.UNIT_X,
-    axisB: CANNON.Vec3.UNIT_X,
-    angle: angleB
-  });
-  var rightShoulder = new CANNON.ConeTwistConstraint(upperBody, upperRightArm, {
-    pivotA: new CANNON.Vec3(shouldersDistance / 2, upperBodyLength / 2, 0),
-    pivotB: new CANNON.Vec3(-upperArmLength / 2, 0, 0),
-    axisA: CANNON.Vec3.UNIT_X,
-    axisB: CANNON.Vec3.UNIT_X,
-    angle: angleB,
-    twistAngle: twistAngle
-  });
-  world.addConstraint(leftShoulder);
-  world.addConstraint(rightShoulder);
-  // Elbow joint
-  var leftElbowJoint = new CANNON.ConeTwistConstraint(lowerLeftArm, upperLeftArm, {
-    pivotA: new CANNON.Vec3(lowerArmLength / 2, 0, 0),
-    pivotB: new CANNON.Vec3(-upperArmLength / 2, 0, 0),
-    axisA: CANNON.Vec3.UNIT_X,
-    axisB: CANNON.Vec3.UNIT_X,
-    angle: angleA,
-    twistAngle: twistAngle
-  });
-  var rightElbowJoint = new CANNON.ConeTwistConstraint(lowerRightArm, upperRightArm, {
-    pivotA: new CANNON.Vec3(-lowerArmLength / 2, 0, 0),
-    pivotB: new CANNON.Vec3(upperArmLength / 2, 0, 0),
-    axisA: CANNON.Vec3.UNIT_X,
-    axisB: CANNON.Vec3.UNIT_X,
-    angle: angleA,
-    twistAngle: twistAngle
-  });
-  world.addConstraint(leftElbowJoint);
-  world.addConstraint(rightElbowJoint);
-  // Move all body parts
-  for (var i = numBodiesAtStart; i < world.bodies.length; i++) {
-    var body = world.bodies[i];
-    body.position.vadd(position, body.position);
+
+          var world;
+          var dt = 1 / 60;
+  
+          var constraintDown = false;
+          var camera, scene, renderer, gplane=false, clickMarker=false;
+          var geometry, material, mesh;
+          var controls,time = Date.now();
+  
+          var jointBody, constrainedBody, mouseConstraint;
+  
+          var N = 1;
+  
+          var container, camera, scene, renderer, projector;
+  
+          // To be synced
+          var meshes=[], bodies=[];
+  
+          // Initialize Three.js
+          if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+  
+          initCannon();
+          init();
+          animate();
+  
+        function init() {
+
+            projector = new THREE.Raycaster();
+
+          container = document.createElement( 'div' );
+          document.body.appendChild( container );
+
+          // scene
+          scene = new THREE.Scene();
+          scene.fog = new THREE.Fog( 0x000000, 500, 10000 );
+
+          // camera
+          camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 0.5, 10000 );
+          camera.position.set(10, 2, 0);
+          camera.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), Math.PI/2);
+          scene.add(camera);
+
+          // lights
+          var light, materials;
+          scene.add( new THREE.AmbientLight( 0x666666 ) );
+
+          light = new THREE.DirectionalLight( 0xffffff, 1.75 );
+          var d = 20;
+
+          light.position.set( d, d, d );
+
+          light.castShadow = true;
+          //light.shadowCameraVisible = true;
+
+          light.shadowMapWidth = 1024;
+          light.shadowMapHeight = 1024;
+
+          light.shadowCameraLeft = -d;
+          light.shadowCameraRight = d;
+          light.shadowCameraTop = d;
+          light.shadowCameraBottom = -d;
+
+          light.shadowCameraFar = 3*d;
+          light.shadowCameraNear = d;
+          light.shadowDarkness = 0.5;
+
+          scene.add( light );
+
+          // floor
+          geometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+          //geometry.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
+            material = new THREE.MeshLambertMaterial( {color: 0x777777 } );
+            markerMaterial = new THREE.MeshLambertMaterial( {color: 0xff0000 } );
+          //THREE.ColorUtils.adjustHSV( material.color, 0, 0, 0.9 );
+          mesh = new THREE.Mesh( geometry, material );
+          mesh.castShadow = true;
+          mesh.quaternion.setFromAxisAngle(new THREE.Vector3(1,0,0), -Math.PI / 2);
+          mesh.receiveShadow = true;
+          scene.add(mesh);
+
+          // cubes
+          var cubeGeo = new THREE.BoxGeometry( 1, 1, 1, 10, 10 );
+            var cubeMaterial = new THREE.MeshPhongMaterial( {color: 0x888888 } );
+            for(var i=0; i<N; i++){
+            cubeMesh = new THREE.Mesh(cubeGeo, cubeMaterial);
+          cubeMesh.castShadow = true;
+          meshes.push(cubeMesh);
+          scene.add(cubeMesh);
+      }
+
+            renderer = new THREE.WebGLRenderer( {antialias: true } );
+          renderer.setSize( window.innerWidth, window.innerHeight );
+          renderer.setClearColor( scene.fog.color );
+
+          container.appendChild( renderer.domElement );
+
+          renderer.gammaInput = true;
+          renderer.gammaOutput = true;
+          renderer.shadowMapEnabled = true;
+
+          window.addEventListener( 'resize', onWindowResize, false );
+
+          window.addEventListener("mousemove", onMouseMove, false );
+          window.addEventListener("mousedown", onMouseDown, false );
+          window.addEventListener("mouseup", onMouseUp, false );
+      }
+
+        function setClickMarker(x,y,z) {
+            if(!clickMarker){
+                var shape = new THREE.SphereGeometry(0.2, 8, 8);
+          clickMarker = new THREE.Mesh(shape, markerMaterial);
+          scene.add(clickMarker);
+      }
+      clickMarker.visible = true;
+      clickMarker.position.set(x,y,z);
+  }
+
+        function removeClickMarker(){
+            clickMarker.visible = false;
+          }
+  
+        function onMouseMove(e){
+            // Move and project on the plane
+            if (gplane && mouseConstraint) {
+                var pos = projectOntoPlane(e.clientX,e.clientY,gplane,camera);
+                console.log(pos)
+                if(pos){
+            setClickMarker(pos.x, pos.y, pos.z, scene);
+          moveJointToPoint(pos.x,pos.y,pos.z);
+      }
   }
 }
-function createGround(world) {
-  // add ground plane
-  var groundShape = new CANNON.Plane();
-  var groundBody = new CANNON.Body({ mass: 0 });
-  groundBody.addShape(groundShape);
-  groundBody.position.set(0, 0, -1);
-  world.addBody(groundBody);
-  demo.addVisual(groundBody);
-}
 
+        function onMouseDown(e){
+            // Find mesh from a ray
+            var entity = findNearestIntersectingObject(e.clientX,e.clientY,camera,meshes);
+          var pos = entity.point;
+            if(pos && entity.object.geometry instanceof THREE.BoxGeometry){
+            constraintDown = true;
+          // Set marker on contact point
+          setClickMarker(pos.x,pos.y,pos.z,scene);
+
+          // Set the movement plane
+          setScreenPerpCenter(pos,camera);
+
+          var idx = meshes.indexOf(entity.object);
+                if(idx !== -1){
+            addMouseConstraint(pos.x, pos.y, pos.z, bodies[idx]);
+          }
+      }
+  }
+
+  // This function creates a virtual movement plane for the mouseJoint to move in
+        function setScreenPerpCenter(point, camera) {
+            // If it does not exist, create a new one
+            if(!gplane) {
+              var planeGeo = new THREE.PlaneGeometry(100,100);
+          var plane = gplane = new THREE.Mesh(planeGeo,material);
+          plane.visible = false; // Hide it..
+          scene.add(gplane);
+        }
+
+        // Center at mouse position
+        gplane.position.copy(point);
+
+        // Make it face toward the camera
+        gplane.quaternion.copy(camera.quaternion);
+    }
+
+        function onMouseUp(e) {
+            constraintDown = false;
+          // remove the marker
+          removeClickMarker();
+
+          // Send the remove mouse joint to server
+          removeJointConstraint();
+        }
+
+        var lastx,lasty,last;
+        function projectOntoPlane(screenX,screenY,thePlane,camera) {
+            var x = screenX;
+          var y = screenY;
+          var now = new Date().getTime();
+          // project mouse to that plane
+          var hit = findNearestIntersectingObject(screenX, screenY, camera, scene.children);
+          lastx = x;
+          lasty = y;
+          last = now;
+          console.log(hit)
+          if(hit){
+              return hit.position;
+          }
+          return false;
+      }
+        function findNearestIntersectingObject(clientX,clientY,camera,objects) {
+            // Get the picking ray from the point
+            var raycaster = getRayCasterFromScreenCoord(clientX, clientY, camera, projector);
+
+          // Find the closest intersecting object
+          // Now, cast the ray all render objects in the scene to see if they collide. Take the closest one.
+          var hits = projector.intersectObjects(objects);
+          var closest = cubeMesh;
+            if (hits.length > 0) {
+            closest = hits[0];
+          }
+
+          return closest;
+      }
+
+      // Function that returns a raycaster to use to find intersecting objects
+      // in a scene given screen pos and a camera, and a projector
+        function getRayCasterFromScreenCoord (screenX, screenY, camera, projector) {
+            var mouse3D = new THREE.Vector2();
+          // Get 3D point form the client x y
+          mouse3D.x = (screenX / window.innerWidth) * 2 - 1;
+          mouse3D.y = -(screenY / window.innerHeight) * 2 + 1;
+          return projector.setFromCamera(mouse3D, camera);
+      }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          //controls.handleResize();
+          renderer.setSize( window.innerWidth, window.innerHeight );
+      }
+
+        function animate() {
+            requestAnimationFrame(animate);
+          //controls.update();
+          updatePhysics();
+          render();
+      }
+
+        function updatePhysics(){
+            world.step(dt);
+          for(var i=0; i !== meshes.length; i++){
+            meshes[i].position.copy(bodies[i].position);
+          meshes[i].quaternion.copy(bodies[i].quaternion);
+      }
+  }
+
+        function render() {
+            renderer.render(scene, camera);
+          }
+  
+        function initCannon(){
+            // Setup our world
+            world = new CANNON.World();
+          world.quatNormalizeSkip = 0;
+          world.quatNormalizeFast = false;
+
+          world.gravity.set(0,-10,0);
+          world.broadphase = new CANNON.NaiveBroadphase();
+
+          // Create boxes
+          var mass = 5, radius = 1.3;
+          boxShape = new CANNON.Box(new CANNON.Vec3(0.5,0.5,0.5));
+            for(var i=0; i<N; i++){
+            boxBody = new CANNON.Body({ mass: mass });
+          boxBody.addShape(boxShape);
+          boxBody.position.set(0,5,0);
+          world.addBody(boxBody);
+          bodies.push(boxBody);
+      }
+
+      // Create a plane
+      var groundShape = new CANNON.Plane();
+            var groundBody = new CANNON.Body({mass: 0 });
+          groundBody.addShape(groundShape);
+          groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+          world.addBody(groundBody);
+
+          // Joint body
+          var shape = new CANNON.Sphere(0.1);
+            jointBody = new CANNON.Body({mass: 0 });
+          jointBody.addShape(shape);
+          jointBody.collisionFilterGroup = 0;
+          jointBody.collisionFilterMask = 0;
+          world.addBody(jointBody)
+      }
+
+        function addMouseConstraint(x,y,z,body) {
+            // The cannon body constrained by the mouse joint
+            constrainedBody = body;
+
+          // Vector to the clicked point, relative to the body
+          var v1 = new CANNON.Vec3(x,y,z).vsub(constrainedBody.position);
+
+          // Apply anti-quaternion to vector to tranform it into the local body coordinate system
+          var antiRot = constrainedBody.quaternion.inverse();
+          pivot = antiRot.vmult(v1); // pivot is not in local body coordinates
+
+          // Move the cannon click marker particle to the click position
+          jointBody.position.set(x,y,z);
+
+          // Create a new constraint
+          // The pivot for the jointBody is zero
+          mouseConstraint = new CANNON.PointToPointConstraint(constrainedBody, pivot, jointBody, new CANNON.Vec3(0,0,0));
+
+          // Add the constriant to world
+          world.addConstraint(mouseConstraint);
+        }
+
+        // This functions moves the transparent joint body to a new postion in space
+        function moveJointToPoint(x,y,z) {
+            // Move the joint body to a new position
+            jointBody.position.set(x, y, z);
+            console.log(x,y,z)
+          mouseConstraint.update();
+      }
+
+        function removeJointConstraint(){
+            // Remove constriant from world
+            world.removeConstraint(mouseConstraint);
+          mouseConstraint = false;
+        }
